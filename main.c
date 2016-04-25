@@ -1,9 +1,9 @@
 // Copyright (c) 2016 Quenio Cesar Machado dos Santos. All rights reserved.
 
 #include <stdio.h>
-#include <string.h>
 
 #include "file_header.h"
+#include "commands.h"
 
 FILE *open_file(const char *file_path)
 {
@@ -27,30 +27,6 @@ FILE *open_file(const char *file_path)
     }
 
     return file;
-}
-
-int read_command(char *command, int max_length)
-{
-    printf("sdb> ");
-    char format[32];
-    snprintf(format, sizeof(format), "%%%ds", max_length);
-    return scanf(format, command);
-}
-
-const int max_command_length = 10;
-
-void process_commands()
-{
-    char command[max_command_length];
-
-    while (read_command(command, max_command_length))
-    {
-        printf("Command: %s\n", command);
-        if (strncmp(command, "quit", max_command_length) == 0)
-        {
-            return;
-        }
-    }
 }
 
 int main(int argc, const char *argv[])
