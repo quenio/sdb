@@ -3,31 +3,8 @@
 #include <stdio.h>
 
 #include "file_header.h"
+#include "db_file.h"
 #include "commands.h"
-
-FILE *open_file(const char *file_path)
-{
-    FILE *file = fopen(file_path, "r+");
-
-    if (file)
-    {
-        printf("Opened file: %s\n", file_path);
-    }
-    else
-    {
-        file = fopen(file_path, "w");
-        if (file)
-        {
-            printf("Created file: %s\n", file_path);
-        }
-        else
-        {
-            printf("Could not open file: %s\n", file_path);
-        }
-    }
-
-    return file;
-}
 
 int main(int argc, const char *argv[])
 {
@@ -39,7 +16,7 @@ int main(int argc, const char *argv[])
     {
         const char *file_path = argv[1];
 
-        FILE *file = open_file(file_path);
+        FILE *file = open_db(file_path);
         if (file)
         {
             Header header;
