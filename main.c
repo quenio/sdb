@@ -1,4 +1,4 @@
-//
+#include <lzma.h>//
 //  main.c
 //  sdb
 //
@@ -10,6 +10,9 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <arpa/inet.h>
+
+#include "packed_structs.h"
 
 FILE *open_file(const char *file_path)
 {
@@ -59,33 +62,39 @@ void process_commands()
     }
 }
 
-struct Header
+const size_t signature_size = 3;
+const uint8_t signature[signature_size] = "sdb";
+
+const uint16_t version = 1;
+
+packed_struct Header
 {
-    uint8_t file_id[3];
-    uint16_t file_version;
+    uint8_t signature[signature_size];
+    uint16_t version;
 };
 typedef struct Header Header;
-Header header;
 
-const uint8_t file_id[sizeof(header.file_id)] = "sdb";
-const size_t header_size = sizeof(header.file_id) + sizeof(header.file_version);
 const size_t header_count = 1;
 
 size_t read_header(FILE *file, Header *header)
 {
-    return fread(header, header_size, header_count, file);
+    size_t read_count = fread(header, sizeof(Header), header_count, file);
+    header->version = ntohs(header->version);
+    return read_count;
 }
 
 size_t write_header(FILE *file, Header *header)
 {
-    memcpy(header->file_id, file_id, sizeof(file_id));
-    header->file_version = 1;
-    return fwrite(header, header_size, header_count, file);
+    memcpy(header->signature, signature, sizeof(signature));
+    header->version = htons(version);
+    size_t write_count = fwrite(header, sizeof(Header), header_count, file);
+    header->version = version;
+    return write_count;
 }
 
 bool check_header(Header *header)
 {
-    return memcmp(header->file_id, file_id, sizeof(file_id)) == 0;
+    return memcmp(header->signature, signature, sizeof(signature)) == 0 && header->version <= version;
 }
 
 bool process_header(FILE *file, Header *header)
@@ -94,12 +103,12 @@ bool process_header(FILE *file, Header *header)
     {
         if (check_header(header))
         {
-            printf("Simple DB header found. File version: %d\n", header->file_version);
+            printf("Simple DB File. Version: %d\n", header->version);
             return true;
         }
         else
         {
-            printf("Simple DB header not found.\n");
+            printf("Not a Simple DB file. Check file path or file version.\n");
             return false;
         }
     }
@@ -128,6 +137,7 @@ int main(int argc, const char *argv[])
         FILE *file = open_file(file_path);
         if (file)
         {
+            Header header;
             if (process_header(file, &header))
             {
                 printf("Ready to use database.\n");
