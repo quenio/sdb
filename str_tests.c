@@ -57,7 +57,7 @@ char *str_append_beyond_minimum()
     char *str = malloc(MINIMUM_SIZE);
     for (int i = 0; i < length; i++)
     {
-        str[i] = 'a' + (char)i;
+        str[i] = (char) ('a' + i);
     }
     str[length] = '\0';
 
